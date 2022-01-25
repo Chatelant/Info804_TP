@@ -4,16 +4,16 @@
 # nom de votre executable
 TARGET  = viewer
 # config de l executable
-QMAKE_CXXFLAGS = --std=c++11
+QMAKE_CXXFLAGS = --std=c++11 -Wno-deprecated -Wno-deprecated-declarations -Wno-deprecated-copy
 CONFIG *= qt opengl release c++11
 
 # config de Qt
 QT     *= opengl xml
 
 # Noms de vos fichiers entete
-HEADERS = Viewer.h
+HEADERS = Viewer.h Utils.h
 # Noms de vos fichiers source (vous pouvez en mettre d'autres)
-SOURCES = Viewer.cpp main.cpp
+SOURCES = Viewer.cpp main.cpp Utils.cpp
 
 ###########################################################
 # Commentez/decommentez selon votre config/systeme
@@ -22,8 +22,10 @@ SOURCES = Viewer.cpp main.cpp
 
 # Exemple de configuration Linux de Qt et libQGLViewer Qt5
 # Ubuntu 16.04
-# INCLUDEPATH *= /usr/include
-LIBS *= -L/usr/lib/x86_64-linux-gnu -lQGLViewer-qt5
+INCLUDEPATH *= /home/user/Downloads/libQGLViewer-2.7.2
+LIBS *= -L/home/user/Downloads/libQGLViewer-2.7.2/QGLViewer -lQGLViewer-qt5
+# /home/user/Downloads/libQGLViewer-2.7.2/QGLViewer
+
 
 # Exemple de configuration MacOSX avec macports
 # INCLUDEPATH *= /opt/local/include
