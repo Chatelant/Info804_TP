@@ -9,6 +9,7 @@
 #include "Color.h"
 #include "Image2D.h"
 #include "Ray.h"
+#include "Background.h"
 
 /// Namespace RayTracer
 namespace rt {
@@ -67,40 +68,13 @@ namespace rt {
         int myWidth;
         int myHeight;
 
-        struct Background {
-            virtual Color backgroundColor(const Ray &ray) = 0;
-        };
-
-        struct MyBackground : public Background {
-            Color backgroundColor(const Ray &ray) {
-                const double z = ray.direction[2];
-                if (z < 0) {
-                    Color result;
-                    Real x = -0.5f * ray.direction[0] / ray.direction[2];
-                    Real y = -0.5f * ray.direction[1] / ray.direction[2];
-                    Real d = sqrt(x * x + y * y);
-                    Real t = std::min(d, 30.0f) / 30.0f;
-                    x -= floor(x);
-                    y -= floor(y);
-                    if (((x >= 0.5f) && (y >= 0.5f)) || ((x < 0.5f) && (y < 0.5f)))
-                        result += (1.0f - t) * Color(0.2f, 0.2f, 0.2f) + t * Color(1.0f, 1.0f, 1.0f);
-                    else
-                        result += (1.0f - t) * Color(0.4f, 0.4f, 0.4f) + t * Color(1.0f, 1.0f, 1.0f);
-                    return result;
-                } else if (0 < z && z < 0.5) {
-                    return 0.5 * Color(1, 1, 1) + 0.5 * Color(0.0, 0.0, 1.0);
-                } else {
-                    return 0.5 * Color(0.0, 0.0, 1.0) + 0.5 * Color(0.0, 0.0, 0.0);
-                }
-            }
-        };
 
         /// The Background to render
         Background *ptrBackground;
 
         Renderer() : ptrScene(0), ptrBackground(0) {}
 
-        Renderer(Scene &scene) : ptrScene(&scene), ptrBackground(0) {}
+        Renderer(Scene &scene, Background &background) : ptrScene(&scene), ptrBackground(&background) {}
 
         void setScene(rt::Scene &aScene) { ptrScene = &aScene; }
 
@@ -160,17 +134,38 @@ namespace rt {
         /// @return the color for the given ray.
         Color trace(const Ray &ray) {
             assert(ptrScene != 0);
-            Color result = Color(0.0, 0.0, 0.0);
             GraphicalObject *obj_i = 0; // pointer to intersected object
             Point3 p_i;       // point of intersection
 
+            Color c = Color(0.0, 0.0, 0.0);
+
             // Look for intersection in this direction.
             Real ri = ptrScene->rayIntersection(ray, obj_i, p_i);
+
             // Nothing was intersected
             if (ri >= 0.0f) return background(ray); // some background color
 
-            return illumination(ray, obj_i, p_i);
-            return Color(1.0, 1.0, 1.0);
+            const Material m = obj_i->getMaterial(p_i);
+
+            // Reflexion
+            if (ray.depth > 0 && m.coef_reflexion != 0) {
+                Ray ray_refl = Ray(ray.origin, reflect(ray.direction, obj_i->getNormal(p_i)), ray.depth - 1);
+                Color c_refl = trace(ray_refl);
+                c += c_refl * m.specular * m.coef_reflexion;
+            }
+
+            // Refraction
+            if (ray.depth > 0 && m.coef_refraction > 0) {
+                Ray ray_refract = refractionRay(ray, p_i, obj_i->getNormal(p_i), m);
+                Color c_refract = trace(ray_refract);
+                c += c_refract * m.diffuse * m.coef_refraction;
+            }
+
+            if (ray.depth == 0) {
+                return c + illumination(ray, obj_i, p_i);
+            } else {
+                return c + illumination(ray, obj_i, p_i) * m.coef_diffusion;
+            }
         }
 
         /// Calcule le vecteur réfléchi à W selon la normale N.
@@ -185,25 +180,92 @@ namespace rt {
             return res;
         }
 
+        /// Calcule la couleur de la lumière (donnée par light_color) dans la
+        /// direction donnée par le rayon. Si aucun objet n'est traversé,
+        /// retourne light_color, sinon si un des objets traversés est opaque,
+        /// retourne du noir, et enfin si les objets traversés sont
+        /// transparents, attenue la couleur.
+        Color shadow(const Ray &ray, Color light_color) {
+            Color c = light_color;
+            Point3 p = ray.origin;
+            Ray current_Ray = ray;
+
+            // Tant que n'est pas noir
+            while (c.max() > 0.003f) {
+                //on déplace légèrement p vers L pour éviter d'intersecter l'objet initial.
+                p = Point3(p[0] + 0.01 * current_Ray.direction[0],
+                           p[1] + 0.01 * current_Ray.direction[1],
+                           p[2] + 0.01 * current_Ray.direction[2]);
+                current_Ray.origin = p;
+
+                GraphicalObject *obj_intersect = 0;
+                Point3 p_intersect;
+                //  si ce rayon [p,L) intersecte un autre objet (Scene::rayIntersection)
+                if (ptrScene->rayIntersection(current_Ray, obj_intersect, p_intersect) < 0.0) {
+                    //on récupère le matériau m de l'objet au point p' d'intersection
+                    Material m = obj_intersect->getMaterial(p_intersect);
+                    //C est multiplié par la couleur diffuse et le coefficient de refraction de m
+                    c = c * m.diffuse * m.coef_refraction;
+                    //p <- p'
+                    p = p_intersect;
+                } else { break; }//sinon break
+            }
+            return c;
+        }
+
         /// Calcule l'illumination de l'objet \a obj au point \a p, sachant que l'observateur est le rayon \a ray.
         Color illumination(const Ray &ray, GraphicalObject *obj, Point3 p) {
             Material m = obj->getMaterial(p);
             Color c = Color();
+            const Vector3 n = obj->getNormal(p);
+
             for (int i = 0; i < (int) ptrScene->myLights.size(); i++) {
                 const Vector3 L = ptrScene->myLights[i]->direction(p);
-                const double Kd = L.dot(obj->getNormal(p));
+                double Kd = L.dot(n);
+
+                if (Kd < 0) Kd = 0;
 
                 // Specular
                 const Vector3 V = ray.direction;
                 const Vector3 W = reflect(V, obj->getNormal(p));
                 const double beta = W.dot(L);
-                if (beta > 0.0) {
+
+                Ray pl = Ray(p, L);
+                Color b = ptrScene->myLights[i]->color(p);
+                Color pp = shadow(pl, b);
+
+                if (beta >= 0.0) {
                     const double Ks = pow(beta, obj->getMaterial(p).shinyness);
-                    c = c + ptrScene->myLights[i]->color(p) * m.specular * Ks;
+                    c = c + (pp * m.specular * Ks);
                 }
-                c = c + Kd * ptrScene->myLights[i]->color(p) * m.diffuse;
+                c = c + (Kd * pp * m.diffuse);
             }
             return c + m.ambient;
+        }
+
+        Ray refractionRay(const Ray &aRay, const Point3 &p, Vector3 N, const Material &m) {
+            // Lois de Snell
+            Real r = m.in_refractive_index / m.out_refractive_index;
+            const Real cosTheta_1 = (-1.0f) * N.dot(aRay.direction);
+            Real cosTheta_2;
+
+            // Cas du rayon dans l'objet
+            if (aRay.direction.dot(N) <= 0.0) { r = m.out_refractive_index / m.in_refractive_index; }
+
+
+            if (cosTheta_1 > 0) {
+                cosTheta_2 = r * cosTheta_1 - sqrt(1 - ((r * r) * (1 - (cosTheta_1 * cosTheta_1))));
+            } else {
+                cosTheta_2 = r * cosTheta_1 + sqrt(1 - ((r * r) * (1 - (cosTheta_1 * cosTheta_1))));
+            }
+
+            Vector3 vRefract = Vector3(r * aRay.direction + cosTheta_2 * N);
+
+            // Reflexion totale
+            if (1 - (r * r) * (1 - (cosTheta_1 * cosTheta_1)) < 0) {
+                vRefract = reflect(aRay.direction, N);
+            }
+            return Ray(p + vRefract * 0.01f, vRefract, aRay.depth - 1);
         }
     };
 
