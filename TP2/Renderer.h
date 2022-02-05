@@ -265,7 +265,7 @@ namespace rt {
             if (1 - (r * r) * (1 - (cosTheta_1 * cosTheta_1)) < 0) {
                 vRefract = reflect(aRay.direction, N);
             }
-            return Ray(p + vRefract * 0.01f, vRefract, aRay.depth - 1);
+            return Ray(p + vRefract * 0.01f, vRefract, aRay.depth);
         }
     };
 

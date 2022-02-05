@@ -17,7 +17,7 @@ CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_XML_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = --std=c++11 -Wno-deprecated -Wno-deprecated-declarations -Wno-deprecated-copy -O2 -std=gnu++11 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -I../../Downloads/libQGLViewer-2.7.2 -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtOpenGL -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtXml -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
+INCPATH       = -I. -I../../../Downloads/libQGLViewer-2.7.2 -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtOpenGL -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtXml -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/qt5/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -37,7 +37,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = viewer1.0.0
-DISTDIR = /home/user/Desktop/TP1_Chatel/.tmp/viewer1.0.0
+DISTDIR = /home/user/Desktop/Info804_TP/TP1/.tmp/viewer1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
 LIBS          = $(SUBLIBS) -L/home/user/Downloads/libQGLViewer-2.7.2/QGLViewer -lQGLViewer-qt5 /usr/lib/x86_64-linux-gnu/libGL.so /usr/lib/x86_64-linux-gnu/libQt5OpenGL.so /usr/lib/x86_64-linux-gnu/libQt5Widgets.so /usr/lib/x86_64-linux-gnu/libQt5Gui.so /usr/lib/x86_64-linux-gnu/libQt5Xml.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lpthread   
@@ -114,7 +114,6 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_post.prf \
-		.qmake.stash \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
@@ -204,7 +203,6 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_post.prf \
-		.qmake.stash \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
@@ -224,7 +222,7 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		viewer.pro \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/libQGLViewer-qt5.prl
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/libQGLViewer-qt5.prl
 	$(QMAKE) -o Makefile viewer.pro
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf:
@@ -282,7 +280,6 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt_config.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_post.prf:
-.qmake.stash:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/toolchain.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf:
@@ -302,7 +299,7 @@ Makefile: viewer.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf 
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf:
 viewer.pro:
-../../Downloads/libQGLViewer-2.7.2/QGLViewer/libQGLViewer-qt5.prl:
+../../../Downloads/libQGLViewer-2.7.2/QGLViewer/libQGLViewer-qt5.prl:
 qmake: FORCE
 	@$(QMAKE) -o Makefile viewer.pro
 
@@ -370,25 +367,27 @@ compiler_clean: compiler_moc_predefs_clean
 ####### Compile
 
 Viewer.o: Viewer.cpp Viewer.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/qglviewer.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/camera.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/keyFrameInterpolator.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/quaternion.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/vec.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/config.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/frame.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/constraint.h
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/qglviewer.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/camera.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/keyFrameInterpolator.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/quaternion.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/vec.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/config.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/frame.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/constraint.h \
+		Utils.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Viewer.o Viewer.cpp
 
 main.o: main.cpp Viewer.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/qglviewer.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/camera.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/keyFrameInterpolator.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/quaternion.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/vec.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/config.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/frame.h \
-		../../Downloads/libQGLViewer-2.7.2/QGLViewer/constraint.h
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/qglviewer.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/camera.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/keyFrameInterpolator.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/quaternion.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/vec.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/config.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/frame.h \
+		../../../Downloads/libQGLViewer-2.7.2/QGLViewer/constraint.h \
+		Utils.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 Utils.o: Utils.cpp Utils.h
