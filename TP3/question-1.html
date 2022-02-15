@@ -1,105 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <title>A small introduction to three.js webgl [1]</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="css/basic.css">
-  
+
     <script src="three.js"></script>
+    <script src="js/OrbitControls.js"></script>
     <script src="js/Detector.js"></script>
     <script type="text/javascript">
-      
-      // Checks that your browser supports WebGL. 
-      if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-      
-      var renderer = null; 
-      var scene    = null;
-      var camera   = null;
-      var cube     = null;
-      var curTime  = Date.now();
-      
-      // This function is called whenever the document is loaded
-      function init() {
-	  // Get display canvas
-	  var canvas = document.getElementById("webglcanvas");
-	  console.log( canvas );
-	  
-	  // Create the Three.js renderer and attach it to our canvas
-	  renderer = new THREE.WebGLRenderer( { canvas: canvas,
-						antialias: true } );
-	  // Set the viewport size
-	  renderer.setSize( canvas.width, canvas.height );
-	  // Create a new Three.js scene
-	  scene = new THREE.Scene();
-	  // Add  a camera so we can view the scene
-	  camera = new THREE.PerspectiveCamera( 45, canvas.width / canvas.height,
-						1, 4000 );
-	  // Create a texture-mapped cube and add it to the scene
-	  // First, create the texture map
-	  var mapUrl = "images/webgl-logo-256.jpg";
-	  var map    = new THREE.TextureLoader().load( mapUrl );
-	  
-	  // Now, create a Basic material; pass in the map
-	  var material = new THREE.MeshBasicMaterial({ map: map });
-	  
-	  // Create the cube geometry
-	  var geometry = new THREE.BoxGeometry(2, 2, 2);
-	  
-	  // And put the geometry and material together into a mesh
-	  cube = new THREE.Mesh(geometry, material);
-	  
-	  // Move the mesh back from the camera and tilt it toward the viewer
-	  cube.position.z = -8;
-	  cube.rotation.x = Math.PI / 5;
-	  cube.rotation.y = Math.PI / 5;
-	  
-	  // Finally, add the mesh to our scene
-	  scene.add( cube );
-      }
-      
-      // This function is called regularly to update the canvas webgl.
-      function run() {
-	  // Ask to call again run 
-	  requestAnimationFrame( run );
-	  
-	  // Render the scene
-	  render();
-	  
-	  // Calls the animate function if objects or camera should move
-	  animate();
-      }
-      
-      // This function is called regularly to take care of the rendering.
-      function render() {
-	  // Render the scene
-	  renderer.render( scene, camera );
-      }
-      
-      // This function is called regularly to update objects.
-      function animate() {
-	  // Computes how time has changed since last display
-	  var now       = Date.now();
-	  var deltaTime = now - curTime;
-	  curTime       = now;
-	  var fracTime  = deltaTime / 1000; // in seconds
-	  // Now we can move objects, camera, etc.
-	  // Example: rotation cube
-	  var angle = 0.1 * Math.PI * 2 * fracTime; // one turn per 10 second.
-	  cube.rotation.y += angle;
-      }
-      
+
+        // Checks that your browser supports WebGL.
+        if (!Detector.webgl) Detector.addGetWebGLMessage();
+
+        var renderer = null;
+        var scene = null;
+        var camera = null;
+        var cameraAngle = 0.01675;
+        var angle = null;
+        var curTime = Date.now();
+        var controls = null;
+
+        // Groups
+        var solarSystem = null;
+        var earthGroup = null;
+        var moonGroup = null;
+        var erisGroup = null;
+        var saturnGroup = null
+
+        // Objects
+        var earth = null;
+        var moon = null;
+
+        // This function is called whenever the document is loaded
+        function init() {
+            // Get display canvas
+            var canvas = document.getElementById("webglcanvas");
+            console.log(canvas);
+
+            // Create the Three.js renderer and attach it to our canvas
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                antialias: true
+            });
+            // Set the viewport size
+            renderer.setSize(canvas.width, canvas.height);
+            // Create a new Three.js scene
+            scene = new THREE.Scene();
+
+            // Add  a camera so we can view the scene
+            camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height,
+                1, 4000);
+            camera.position.z = 15;
+
+            // Camera control
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+            controls.dampingFactor = 0.25;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 1;
+            controls.maxDistance = 20;
+
+
+            // Background
+            // Add background
+            var path = "images/MilkyWay/";
+            var format = '.jpg';
+            var urls = [
+                path + 'posx' + format, path + 'negx' + format,
+                path + 'posy' + format, path + 'negy' + format,
+                path + 'posz' + format, path + 'negz' + format
+            ];
+
+            var textureCube = new THREE.CubeTextureLoader().load(urls);
+            textureCube.format = THREE.RGBFormat;
+            scene.background = textureCube;
+
+            // ----- SolarSystem ----- //
+
+            // Sun
+            var sunMap = new THREE.TextureLoader().load("images/sun.jpg")
+            var sunGeometry = new THREE.SphereGeometry(1.5, 100, 100);
+            var sunMaterial = new THREE.MeshBasicMaterial({map: sunMap});
+            sun = new THREE.Mesh(sunGeometry, sunMaterial);
+            sun.position.x = 0;
+            sun.position.y = 0;
+            sun.position.z = 0;
+
+            // Earth
+            var earthMapUrl = "images/earth_atmos_4096.jpg";
+            var earthMap = new THREE.TextureLoader().load(earthMapUrl);
+            var earthMaterial = new THREE.MeshPhongMaterial({map: earthMap})
+            var earthGeometry = new THREE.SphereGeometry(0.65, 100, 100);
+            earth = new THREE.Mesh(earthGeometry, earthMaterial);
+            // earth.position.x = 2;
+            // earth.position.z = 2;
+
+            // Moon
+            var moonMapUrl = "images/moon_1024.jpg";
+            var moonMap = new THREE.TextureLoader().load(moonMapUrl);
+            var moonMaterial = new THREE.MeshPhongMaterial({map: moonMap})
+            var moonGeometry = new THREE.SphereGeometry(0.3, 100, 100);
+            moon = new THREE.Mesh(moonGeometry, moonMaterial);
+
+            // lavaPlanet
+            var lavaMapUrl = "images/lavaPlanet.png ";
+            var lavaMap = new THREE.TextureLoader().load(lavaMapUrl);
+            var lavaMaterial = new THREE.MeshPhongMaterial({map: lavaMap})
+            var lavaGeometry = new THREE.SphereGeometry(70, 100, 100);
+            lavaPlanet = new THREE.Mesh(lavaGeometry, lavaMaterial);
+            lavaPlanet.position.z = 200;
+
+
+            // Add a white point light
+            scene.add(lavaPlanet)
+            light = new THREE.PointLight(0xffffff, 1.5);
+
+
+            // Eris
+            var erisMapUrl = "images/eris.jpg";
+            var erisMap = new THREE.TextureLoader().load(erisMapUrl);
+            var erisMaterial = new THREE.MeshPhongMaterial({map: erisMap})
+            var erisGeometry = new THREE.SphereGeometry(1, 100, 100);
+            eris = new THREE.Mesh(erisGeometry, erisMaterial);
+            eris.position.x = 5;
+            eris.position.z = 5;
+
+            // saturn
+            var saturnMapUrl = "images/saturn.jpg";
+            var saturnMap = new THREE.TextureLoader().load(saturnMapUrl);
+            var saturnMaterial = new THREE.MeshPhongMaterial({map: saturnMap})
+            var saturnGeometry = new THREE.SphereGeometry(1, 100, 100);
+            saturn = new THREE.Mesh(saturnGeometry, saturnMaterial);
+            saturn.position.x = 6;
+            saturn.position.z = 5;
+
+            // ----- Group ----- //
+            solarSystem = new THREE.Group();
+            earthGroup = new THREE.Group();
+            moonGroup = new THREE.Group();
+            erisGroup = new THREE.Group();
+            saturnGroup = new THREE.Group();
+
+            // Solar
+            solarSystem.add(light)
+            solarSystem.add(sun)
+            solarSystem.add(earthGroup);
+            solarSystem.add(erisGroup);
+            solarSystem.add(saturnGroup);
+            // solarSystem.position.z = -10;
+            solarSystem.position.x = 0;
+            solarSystem.position.y = 0;
+
+            // Moon
+            moonGroup.add(moon);
+            moonGroup.position.z = 0;
+            moonGroup.position.x = 4;
+            moonGroup.position.y = 0;
+
+            // Earth
+            earthGroup.add(earth);
+            earthGroup.add(moonGroup);
+            // earthGroup.add(lavaPlanet)
+
+            // Eris
+            erisGroup.add(eris);
+            earth.rotation.x = Math.PI / 5;
+            earth.rotation.y = Math.PI / 5;
+
+            // Saturn
+            saturnGroup.add(saturn);
+
+
+            earthGroup.position.z = 0;
+            earthGroup.position.x = 0;
+            earthGroup.position.y = 0;
+
+            erisGroup.position.x = 0;
+            erisGroup.position.y = 0;
+            erisGroup.position.z = 0;
+
+            earth.position.x = 4;
+            earth.position.y = 0;
+            earth.position.z = 0;
+            earth.rotation.x = Math.PI / 5;
+            earth.rotation.y = Math.PI / 5;
+
+            moon.position.x = 1.5;
+            moon.position.y = 0;
+            moon.position.z = 0;
+            moon.rotation.x = Math.PI / 5;
+            moon.rotation.y = Math.PI / 5;
+
+            scene.add(solarSystem)
+
+            // Ombres
+
+            light.castShadow = true;
+            // On peut aussi paramétrer la qualité du calcul
+            light.shadow.mapSize.width = 512;  // default
+            light.shadow.mapSize.height = 512; // default
+            light.shadow.camera.near = 0.5;    // default
+            light.shadow.camera.far = 50;
+
+            earth.castShadow = true;
+            earth.receiveShadow = true;
+            moon.castShadow = true;
+            moon.receiveShadow = true;
+            lavaPlanet.castShadow = true;
+            eris.receiveShadow = true;
+            saturn.receiveShadow = true;
+        }
+
+        // This function is called regularly to update the canvas webgl.
+        function run() {
+            // Ask to call again run
+            requestAnimationFrame(run);
+
+            // Render the scene
+            render();
+
+            // Calls the animate function if objects or camera should move
+            animate();
+
+        }
+
+        // This function is called regularly to take care of the rendering.
+        function render() {
+            // Render the scene
+            renderer.shadowMap.enabled = true;
+            // rendu coûteux mais plus joli (default: THREE.PCFShadowMap)
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.render(scene, camera);
+        }
+
+        // This function is called regularly to update objects.
+        function animate() {
+            // Computes how time has changed since last display
+            var now = Date.now();
+            var deltaTime = now - curTime;
+            curTime = now;
+            var fracTime = deltaTime / 1000; // in seconds
+            var angle = fracTime * Math.PI * 2;
+
+            earthGroup.rotation.y += angle / 15; // la terre tourne en 365 jours
+            earth.rotation.y += angle; // et en un jour sur elle-même
+
+            moonGroup.rotation.y += angle / 28; // la lune tourne en 28 jours autour de la terre
+            moon.rotation.y += angle / 28; // et en 28 jours aussi sur elle-même pour faire face à la terre
+
+            erisGroup.rotation.y -= angle / 10;
+            erisGroup.rotation.z -= angle / 10;
+            eris.rotation.y += angle / 15;
+            eris.rotation.z += angle / 10;
+
+            saturnGroup.rotation.z += angle / 20;
+            saturnGroup.rotation.y -= angle / 20;
+
+            lavaPlanet.rotation.y += angle / 100;
+            lavaPlanet.rotation.z += angle / 100;
+
+            // camera.lookAt(earth.matrixWorld.getPosition());
+
+            // // Avec un grand demi-axe de 5 et un petit demi-axe de 3
+            cameraAngle += angle * 0.05;
+            camera.position.x = 5 * Math.cos(cameraAngle);
+            camera.position.y = 3 * Math.sin(cameraAngle);
+            controls.target = earth.matrixWorld.getPosition();
+            controls.update();
+
+
+        }
+
     </script>
-  </head>
-  <body>
-    <div id="info"> a first three.js example </div>
-    <canvas id="webglcanvas" style="border: none;background-color:#000000"
-	    width="600" height="500"></canvas>
-    <!-- We run the WebGL code at the end to be sure that the document is loaded.
-      -->
-    <script>
-      init(); run();
-    </script> 
-  </body>
+</head>
+<body>
+<div id="info"> a first three.js example</div>
+<canvas id="webglcanvas" style="border: none;background-color:#000000"
+        width="600" height="500"></canvas>
+<!-- We run the WebGL code at the end to be sure that the document is loaded.
+  -->
+<script>
+    init();
+    run();
+</script>
+</body>
 </html>
 
